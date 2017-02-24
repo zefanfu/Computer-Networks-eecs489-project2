@@ -1,6 +1,7 @@
 *.py
 miProxy/*.o
 miProxy/miProxy
+miProxy/*.txt
 nameserver/*.o
 nameserver/nameserver
 nameserver/*.txt
