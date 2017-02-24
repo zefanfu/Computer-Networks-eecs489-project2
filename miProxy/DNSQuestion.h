@@ -2,6 +2,7 @@
 #define __DNS_Question_H__
 
 #include <string.h>
+typedef unsigned short    ushort;
 
 struct DNSQuestion
 {

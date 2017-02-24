@@ -2,6 +2,8 @@
 #define __DNS_Record_H__
 
 #include <string.h>
+typedef unsigned short    ushort;
+
 
 struct DNSRecord
 {

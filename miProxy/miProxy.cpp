@@ -15,7 +15,28 @@
 #include <errno.h>
 #include <cstdio>
 #include "miProxy.h"
-//#include "DNSMsg.h"
+#include "DNSMsg.h"
+
+
+#define MAX_QLEN 120
+#define MAX_RLEN 220
+
+int sendall(int s, char *buf, int *len) {
+	int total = 0;
+	int bytesleft = *len;
+	int n;
+
+	while (total < *len) {
+		n = send(s, buf + total, bytesleft, 0);
+		if (n == - 1) { break; }
+		total += n;
+		bytesleft -= n;
+	}
+
+	*len = total;
+
+	return n == -1 ? -1 : 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -76,11 +97,11 @@ int main(int argc, char *argv[])
 		socklen_t client_addr_len = sizeof(client_addr);
 		int ip_sd,dns_sd;
 		//dns socket
-		if ((dns_sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) 
-		{
-			std::cout << "Error on ip socket" << std::endl;
-			return -1;
-		}
+		// if ((dns_sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) 
+		// {
+		// 	std::cout << "Error on ip socket" << std::endl;
+		// 	return -1;
+		// }
 		fd_set read_set;
 		// Keep track of each file descriptor accepted
 		std::vector<client_data_fd*> fds;
@@ -120,6 +141,11 @@ int main(int argc, char *argv[])
 					{
 						/*resolve video url*/
 						// as client
+						if ((dns_sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) 
+						{
+							std::cout << "Error on ip socket" << std::endl;
+							return -1;
+						}
 						struct sockaddr_in dns_addr;
 						memset(&dns_addr, 0, sizeof(dns_addr));
 					    dns_addr.sin_family  = AF_INET;
@@ -130,8 +156,7 @@ int main(int argc, char *argv[])
 							std::cout << "Error on dns connect" << std::endl;
 							return -1;
 						}
-
-						/*DNSHeader header;
+						DNSHeader header;
 						DNSQuestion question;
 						DNSRecord record;
 						char qmsg[MAX_QLEN];
@@ -153,22 +178,21 @@ int main(int argc, char *argv[])
 						strcpy(question.QNAME, "video.cse.umich.edu");
 						question.QTYPE = 1;
 						question.QCLASS = 1;
-
-
+						
 						to_qmsg(qmsg, &header, &question);
 
 						int len = MAX_QLEN;
-						if (sendall(sockfd, qmsg, &len) == -1) {
-							cout << "Error on sendall" << endl;
+						if (sendall(dns_sd, qmsg, &len) == -1) {
+							std::cout << "Error on sendall" << std::endl;
 							exit(1);
 						}
 
 						int bytesRecvd = 0;
 						int numBytes;
 						while(bytesRecvd < MAX_RLEN) {
-							numBytes = recv(sockfd, rmsg + bytesRecvd, MAX_RLEN - bytesRecvd, 0);
+							numBytes = recv(dns_sd, rmsg + bytesRecvd, MAX_RLEN - bytesRecvd, 0);
 							if (numBytes < 0) {
-								cout << "Error receiving bytes" << endl;
+								std::cout << "Error receiving bytes" << std::endl;
 								exit(1);
 							}
 							bytesRecvd += numBytes;
@@ -177,11 +201,10 @@ int main(int argc, char *argv[])
 						parse_rmsg(rmsg, &header, &record);
 
 						if (header.RCODE == 0) {
-							cout << record.RDATA << endl;
-							strcpy(server_name, record.RDATA);
-						}*/
-
-						
+							parse_ip(record.RDATA, server_name);
+						}
+						close(dns_sd);
+		
 					    /*send things to dns*/
 					    //to_qmsg()
 					}

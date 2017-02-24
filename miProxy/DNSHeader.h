@@ -1,6 +1,9 @@
 #ifndef __DNS_HEADER_H__
 #define __DNS_HEADER_H__
 
+typedef unsigned short    ushort;
+
+
 struct DNSHeader
 {
 	ushort ID;

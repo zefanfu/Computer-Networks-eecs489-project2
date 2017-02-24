@@ -1,0 +1,6 @@
+*.py
+miProxy/*.o
+miProxy/miProxy
+nameserver/*.o
+nameserver/nameserver
+nameserver/*.txt
